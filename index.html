@@ -1,90 +1,94 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Date Proposal System</title>
-    <!-- Подключаем библиотеку Supabase -->
-    <script src="https://jsdelivr.net"></script>
+    <title>Interactive Date Proposal Card</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-color: #ffe6e6;
-            --card-bg: #ffffff;
-            --primary-accent: #d63384;
-            --primary-hover: #b8256f;
-            --text-dark: #333333;
-            --text-muted: #666666;
-            --border-color: #f1b6c4;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(#f8c8d8 1px, transparent 1px);
-            background-size: 20px 20px;
-            color: var(--text-dark);
+            background-color: #ffe6e6;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
             overflow: hidden;
+            padding: 20px;
         }
 
         .container {
-            background-color: var(--card-bg);
-            padding: 32px;
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 450px;
+            padding: 32px 24px;
             border-radius: 24px;
             box-shadow: 0 10px 30px rgba(214, 51, 132, 0.12);
             text-align: center;
-            max-width: 440px;
-            width: 100%;
-            border: 1px solid var(--border-color);
             position: relative;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         h1, h2 {
-            color: var(--primary-accent);
+            color: #d63384;
             margin-bottom: 16px;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
+            line-height: 1.3;
         }
 
         p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            color: #555555;
             margin-bottom: 20px;
+            font-size: 1rem;
             line-height: 1.4;
         }
 
-        .hidden {
-            display: none !important;
+        .gif-container {
+            width: 100%;
+            max-width: 200px;
+            height: 180px;
+            margin: 0 auto 20px auto;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .gif-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            width: 100%;
             text-align: left;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
-            font-weight: 600;
             margin-bottom: 6px;
-            font-size: 0.9rem;
-            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #444;
         }
 
         input[type="text"],
         input[type="email"],
         input[type="time"] {
             width: 100%;
-            padding: 12px;
-            border: 1.5px solid var(--border-color);
+            padding: 12px 16px;
+            border: 2px solid #ffd1d1;
             border-radius: 12px;
             font-size: 1rem;
             outline: none;
@@ -94,425 +98,483 @@
         input[type="text"]:focus,
         input[type="email"]:focus,
         input[type="time"]:focus {
-            border-color: var(--primary-accent);
+            border-color: #d63384;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+            position: relative;
         }
 
         .btn {
-            background-color: var(--primary-accent);
+            background-color: #d63384;
             color: white;
             border: none;
             padding: 12px 24px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 50px;
             cursor: pointer;
-            width: 100%;
-            box-shadow: 0 4px 12px rgba(214, 51, 132, 0.25);
-            transition: background-color 0.2s, transform 0.1s;
+            transition: transform 0.2s, background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn:hover {
-            background-color: var(--primary-hover);
+            background-color: #c22073;
         }
 
         .btn-secondary {
             background-color: #6c757d;
-            box-shadow: none;
-            margin-top: 10px;
         }
 
         .btn-secondary:hover {
             background-color: #5a6268;
         }
 
-        .btn-whatsapp {
-            background-color: #25D366;
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
-            margin-top: 10px;
-        }
-
-        .btn-whatsapp:hover {
-            background-color: #20ba5a;
-        }
-
-        .gif-container {
-            margin: 16px 0;
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .gif-container img {
-            width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-        }
-
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 20px;
-            min-height: 60px;
-            position: relative;
-        }
-
-        #no-btn {
-            background-color: #888888;
-            box-shadow: none;
+        .btn-no {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
             position: relative;
             z-index: 10;
-            width: auto;
         }
 
-        #yes-btn {
-            width: auto;
+        .btn-no:hover {
+            background-color: #e2e6ea;
         }
 
-        .date-options {
-            display: flex;
-            gap: 8px;
+        .option-tile {
+            width: 100%;
+            border: 2px solid #ffd1d1;
+            border-radius: 12px;
+            padding: 14px;
             margin-bottom: 12px;
-        }
-
-        .radio-tile {
-            flex: 1;
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        input[type="radio"] {
-            display: none;
+        .option-tile input[type="radio"] {
+            accent-color: #d63384;
+            transform: scale(1.2);
         }
 
-        input[type="radio"]:checked + .radio-tile {
+        .option-tile.selected {
+            border-color: #d63384;
             background-color: #fff0f5;
-            border-color: var(--primary-accent);
-            color: var(--primary-accent);
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background-color: #fff0f5;
-            color: var(--primary-accent);
-            font-weight: 600;
-            border-radius: 20px;
+        .spinner {
+            border: 4px solid #ffd1d1;
+            border-top: 4px solid #d63384;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
             margin-bottom: 16px;
-            font-size: 0.85rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .view {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        .time-picker-container {
+            margin: 16px 0;
+            width: 100%;
+        }
+
+        .result-box {
+            background-color: #fff0f5;
+            border: 2px dashed #d63384;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .result-box p {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #d63384;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Экран загрузки (чтобы не было пустой плашки) -->
-        <div id="screen-loading">
-            <h2>Connecting...</h2>
-            <p>Please wait while we establish a secure connection.</p>
+        <div id="view-loading" class="view active">
+            <div class="spinner"></div>
+            <p>Connecting...</p>
         </div>
 
-        <!-- Экран ошибок -->
-        <div id="screen-error" class="hidden">
+        <div id="view-error" class="view">
             <h2>Card Not Found</h2>
-            <p id="error-message">Invalid card ID provided in the URL.</p>
+            <p id="error-message">Invalid or missing card ID. Please check your link.</p>
         </div>
 
-        <!-- Экран настройки для парня -->
-        <div id="screen-setup" class="hidden">
-            <h2>Activate Your Card 🌹</h2>
-            <p>Fill out the details below to prepare the proposal for her.</p>
-            <form id="setup-form">
+        <div id="view-setup" class="view">
+            <h2>Configure Your Proposal</h2>
+            <form id="form-setup" style="width: 100%;">
                 <div class="form-group">
-                    <label for="guy-email">Your Email (for updates)</label>
-                    <input type="email" id="guy-email" required placeholder="you@example.com">
+                    <label for="guy-email">Your Email</label>
+                    <input type="email" id="guy-email" required placeholder="your@email.com">
                 </div>
                 <div class="form-group">
                     <label for="girl-name">Her Name</label>
                     <input type="text" id="girl-name" required placeholder="e.g. Sarah">
                 </div>
                 <div class="form-group">
-                    <label>Available Date Options</label>
-                    <input type="text" id="date-opt-1" required placeholder="Option 1 (e.g. Sept 3rd)" style="margin-bottom: 8px;">
-                    <input type="text" id="date-opt-2" required placeholder="Option 2 (e.g. Sept 4th)">
+                    <label for="opt-1">Date Option 1</label>
+                    <input type="text" id="opt-1" required placeholder="e.g. Italian Dinner at Mario's">
+                </div>
+                <div class="form-group">
+                    <label for="opt-2">Date Option 2</label>
+                    <input type="text" id="opt-2" required placeholder="e.g. Picnic at Central Park">
                 </div>
                 <div class="form-group">
                     <label for="default-time">Suggested Default Time</label>
                     <input type="time" id="default-time" value="18:00" required>
                 </div>
-                <button type="submit" class="btn">Save & Activate Card ❤️</button>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 8px;">Save & Activate Card</button>
             </form>
         </div>
 
-        <!-- Экран успеха активации -->
-        <div id="screen-activated" class="hidden">
-            <h2>Card Activated! 🎉</h2>
-            <p>Your proposal card is live. Share the link with her!</p>
-            <button id="copy-link-btn" class="btn">Copy Link for Her 📋</button>
-            <button id="whatsapp-btn" class="btn btn-whatsapp">Share to WhatsApp 💬</button>
-        </div>
-
-        <!-- Панель ожидания для парня -->
-        <div id="screen-guy-dashboard" class="hidden">
-            <span class="status-badge">Status: Active</span>
-            <h2>Card is Ready! ⏳</h2>
+        <div id="view-dashboard" class="view">
+            <h2>Card is Ready!</h2>
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtZ2JiZDRzb3lyYnEydTV3ZndxMm13NXh6cGt3azg0Nm5heGFuZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlBO7eyXzSZkJri/giphy.gif" alt="Waiting">
+            </div>
             <p>Waiting for <strong id="dash-girl-name">her</strong> to open the link and respond.</p>
-            <button id="reset-card-btn" class="btn btn-secondary">Reset Card 🔄</button>
+            <button id="btn-reset" class="btn btn-secondary" style="margin-top: 16px;">Reset Card</button>
         </div>
 
-        <!-- Экран игры Да/Нет для девушки -->
-        <div id="screen-proposal" class="hidden">
+        <div id="view-proposal" class="view">
             <h1 id="proposal-heading">Will you go out on a date with me? 🌹</h1>
             <div class="gif-container">
-                <img id="proposal-gif" src="https://giphy.com" alt="Cute bear">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZydzNza3ZpeXRoNmtndHlyZTZxbjY3NmEwbWhqNjVvY2ZmejN6NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26hpW75iE0aUq8jio/giphy.gif" alt="Cute Proposal">
             </div>
             <div class="btn-group">
-                <button id="yes-btn" class="btn">Yes</button>
-                <button id="no-btn" class="btn">No</button>
+                <button id="btn-yes" class="btn">Yes</button>
+                <button id="btn-no" class="btn btn-no">No</button>
             </div>
         </div>
 
-        <!-- Экран выбора времени девушкой -->
-        <div id="screen-time-select" class="hidden">
-            <h2>Yay! Pick a date and time 🥰</h2>
-            <p>Choose the best option for you:</p>
-            <form id="time-form">
-                <div class="form-group">
-                    <label>Select a Day:</label>
-                    <div class="date-options">
-                        <label style="flex: 1;">
-                            <input type="radio" name="selected_date" id="radio-opt-1" required>
-                            <div class="radio-tile" id="tile-opt-1">Date 1</div>
-                        </label>
-                        <label style="flex: 1;">
-                            <input type="radio" name="selected_date" id="radio-opt-2">
-                            <div class="radio-tile" id="tile-opt-2">Date 2</div>
-                        </label>
-                    </div>
+        <div id="view-selection" class="view">
+            <h2>Choose Our Date! 🥰</h2>
+            <p>Select your preferred activity and time:</p>
+            <form id="form-selection" style="width: 100%;">
+                <div class="option-tile selected" id="tile-1">
+                    <input type="radio" id="rad-1" name="date_choice" value="1" checked>
+                    <label for="rad-1" id="lbl-opt-1" style="margin-bottom:0; cursor:pointer; width:100%;">Option 1</label>
                 </div>
-                <div class="form-group">
-                    <label for="girl-time">Choose exact time:</label>
-                    <input type="time" id="girl-time" required>
+                <div class="option-tile" id="tile-2">
+                    <input type="radio" id="rad-2" name="date_choice" value="2">
+                    <label for="rad-2" id="lbl-opt-2" style="margin-bottom:0; cursor:pointer; width:100%;">Option 2</label>
                 </div>
-                <button type="submit" class="btn">Confirm Date ❤️</button>
+                <div class="form-group time-picker-container">
+                    <label for="final-time">Select Time</label>
+                    <input type="time" id="final-time" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Confirm Date</button>
             </form>
         </div>
-// Инициализация базы данных и параметров
-const SUPABASE_URL = "https://supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_w29JCG3gIA-mQcPn4s1FRw_wkkBsf-A";
 
-let _supabase;
-let cardData = null;
-let yesSize = 1;
-let noClicks = 0;
-const noTexts = ["No", "Are you sure?", "Really sure?", "Think again!", "Last chance!", "Surely not?", "Gonna cry...", "Change your mind!"];
+        <div id="view-completed-girl" class="view">
+            <h2>It's a date! See you then! 🥰❤️</h2>
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGpmczEzNmVpZ2pnaDRxbWpsYmt3NWw2NmI2MW05eWZsaWZzb201diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FLdmIp6wJr91JAI/giphy.gif" alt="Celebration">
+            </div>
+            <div class="result-box">
+                <p id="girl-final-details"></p>
+            </div>
+        </div>
 
-// Извлекаем ID строго из URL и превращаем в число
-const urlParams = new URLSearchParams(window.location.search);
-const currentCardId = parseInt(urlParams.get('id'), 10);
+        <div id="view-completed-guy" class="view">
+            <h2>She said YES! 🎉</h2>
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWZreTNhczJqdXgyNXBldjlyODlyeHRldGNqdW1hM3A0OWY4dmExdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g9582DNuQppxC/giphy.gif" alt="She Said Yes">
+            </div>
+            <p>Here is the date and time she chose:</p>
+            <div class="result-box">
+                <p id="guy-final-details"></p>
+            </div>
+            <button id="btn-reset-guy" class="btn btn-secondary" style="margin-top: 16px;">Reset Card</button>
+        </div>
+    </div>
 
-function showScreen(screenId) {
-    // Прячем абсолютно все экраны, включая экран загрузки
-    if (document.getElementById('screen-loading')) {
-        document.getElementById('screen-loading').classList.add('hidden');
-    }
-    document.querySelectorAll('.container > div').forEach(function(div) {
-        div.classList.add('hidden');
-    });
-    // Показываем нужный экран
-    document.getElementById(screenId).classList.remove('hidden');
-}
+    <script>
+        // 1. DATABASE CONFIGURATION
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_w29JCG3gIA-mQcPn4s1FRw_wkkBsf-A";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function init() {
-    // Проверка на корректность библиотеки Supabase
-    if (typeof supabase === 'undefined') {
-        document.getElementById('error-message').innerText = "Database SDK failed to load. Check internet connection.";
-        showScreen('screen-error');
-        return;
-    }
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentCardId = parseInt(urlParams.get('id'), 10);
 
-    // Создаем клиент внутри функции инициализации
-    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // State variables
+        let cardData = null;
+        let yesScale = 1;
+        let noClickCount = 0;
+        const noTexts = [
+            "No", 
+            "Are you sure?", 
+            "Really sure?", 
+            "Think again!", 
+            "Last chance!", 
+            "Surely not?", 
+            "Gonna cry...", 
+            "Change your mind!"
+        ];
 
-    if (!currentCardId || isNaN(currentCardId)) {
-        document.getElementById('error-message').innerText = "Please open the link via a valid QR code (missing valid ID).";
-        showScreen('screen-error');
-        return;
-    }
-
-    try {
-        const response = await _supabase.from('cards').select('*').eq('id', currentCardId).single();
-        const data = response.data;
-        const error = response.error;
-        
-        if (error || !data) {
-            document.getElementById('error-message').innerText = "Card ID not found in database. Make sure it exists.";
-            showScreen('screen-error');
-            return;
+        // UI View Switcher
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const targetView = document.getElementById(viewId);
+            if (targetView) targetView.classList.add('active');
         }
 
-        cardData = data;
-        const isCreator = localStorage.getItem('creator_card_' + currentCardId) === 'true';
+        // Initialize App
+        async function init() {
+            if (isNaN(currentCardId)) {
+                showView('view-error');
+                document.getElementById('error-message').textContent = "Missing or invalid card ID in URL.";
+                return;
+            }
 
-        if (cardData.status === 'empty') {
-            showScreen('screen-setup');
-        } else if (cardData.status === 'active') {
-            if (isCreator) {
-                document.getElementById('dash-girl-name').innerText = cardData.girl_name || "her";
-                showScreen('screen-guy-dashboard');
-            } else {
-                document.getElementById('proposal-heading').innerText = "Will you go out on a date with me, " + (cardData.girl_name || 'beautiful') + "? 🌹";
-                showScreen('screen-proposal');
+            try {
+                const { data, error } = await supabase
+                    .from('cards')
+                    .select('*')
+                    .eq('id', currentCardId)
+                    .single();
+
+                if (error || !data) {
+                    showView('view-error');
+                    document.getElementById('error-message').textContent = "Card not found in database.";
+                    return;
+                }
+
+                cardData = data;
+                renderStage();
+            } catch (err) {
+                showView('view-error');
+                document.getElementById('error-message').textContent = "Failed to connect to the server.";
             }
-        } else if (cardData.status === 'completed') {
-            const chosenTime = cardData.final_time || "TBD";
-            if (isCreator) {
-                document.getElementById('completed-message').innerHTML = "She said <strong>YES!</strong> 🎉<br><br><strong>Your Scheduled Time:</strong><br>" + chosenTime;
-            } else {
-                document.getElementById('completed-message').innerHTML = "It's a date! See you then! 🥰❤️<br><br><strong>Scheduled Time:</strong><br>" + chosenTime;
-            }
-            showScreen('screen-completed');
         }
-    } catch (err) {
-        document.getElementById('error-message').innerText = "Connection error. Please try again later.";
-        showScreen('screen-error');
-    }
-}
 
-// Логика настройки для парня
-document.getElementById('setup-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const guyEmail = document.getElementById('guy-email').value;
-    const girlName = document.getElementById('girl-name').value;
-    const opt1 = document.getElementById('date-opt-1').value;
-    const opt2 = document.getElementById('date-opt-2').value;
-    const defTime = document.getElementById('default-time').value;
+        // Render Page based on Status & LocalStorage
+        function renderStage() {
+            const isGuy = localStorage.getItem('creator_card_' + currentCardId) === 'true';
 
-    const datesJson = { opt1: opt1, opt2: opt2, defaultTime: defTime };
+            if (cardData.status === 'empty') {
+                showView('view-setup');
+            } else if (cardData.status === 'active') {
+                if (isGuy) {
+                    document.getElementById('dash-girl-name').textContent = cardData.girl_name || 'Her';
+                    showView('view-dashboard');
+                } else {
+                    document.getElementById('proposal-heading').textContent = `Will you go out on a date with me, ${cardData.girl_name || ''}? 🌹`;
+                    showView('view-proposal');
+                }
+            } else if (cardData.status === 'completed') {
+                if (isGuy) {
+                    document.getElementById('guy-final-details').textContent = cardData.final_time || "Selected Date & Time";
+                    showView('view-completed-guy');
+                } else {
+                    document.getElementById('girl-final-details').textContent = cardData.final_time || "Selected Date & Time";
+                    showView('view-completed-girl');
+                }
+            }
+        }
 
-    const response = await _supabase.from('cards').update({
-        status: 'active',
-        guy_email: guyEmail,
-        girl_name: girlName,
-        guy_dates: datesJson
-    }).eq('id', currentCardId);
+        // STAGE A: Setup Form Handler
+        document.getElementById('form-setup').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('guy-email').value;
+            const girlName = document.getElementById('girl-name').value;
+            const opt1 = document.getElementById('opt-1').value;
+            const opt2 = document.getElementById('opt-2').value;
+            const defaultTime = document.getElementById('default-time').value;
 
-    if (response.error) {
-        alert("Failed to save settings: " + response.error.message);
-        return;
-    }
+            const guyDates = {
+                option1: opt1,
+                option2: opt2,
+                defaultTime: defaultTime
+            };
 
-    localStorage.setItem('creator_card_' + currentCardId, 'true');
-    window.location.reload(); // Перезагружаем страницу, чтобы применился статус active
-});
+            showView('view-loading');
 
-// Кнопки шаринга ссылок
-if (document.getElementById('copy-link-btn')) {
-    document.getElementById('copy-link-btn').addEventListener('click', function() {
-        navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard! Sent it to her. 😉");
-    });
-}
+            const { error } = await supabase
+                .from('cards')
+                .update({
+                    status: 'active',
+                    guy_email: email,
+                    girl_name: girlName,
+                    guy_dates: guyDates
+                })
+                .eq('id', currentCardId);
 
-if (document.getElementById('whatsapp-btn')) {
-    document.getElementById('whatsapp-btn').addEventListener('click', function() {
-        const text = encodeURIComponent("Hey! I left a little surprise for you here, check it out: " + window.location.href);
-        window.open("https://whatsapp.com" + text, '_blank');
-    });
-}
+            if (error) {
+                alert("Failed to save card options. Please try again.");
+                showView('view-setup');
+                return;
+            }
 
-if (document.getElementById('reset-card-btn')) {
-    document.getElementById('reset-card-btn').addEventListener('click', async function() {
-        if (!confirm("Are you sure you want to reset this card? All answers will be lost.")) return;
-        
-        await _supabase.from('cards').update({
-            status: 'empty',
-            guy_email: null,
-            girl_name: null,
-            guy_dates: null,
-            girl_answer: null,
-            final_time: null
-        }).eq('id', currentCardId);
+            localStorage.setItem('creator_card_' + currentCardId, 'true');
+            window.location.reload();
+        });
 
-        localStorage.removeItem('creator_card_' + currentCardId);
-        window.location.reload();
-    });
-}
+        // STAGE B: Proposal "No" Teleport Logic
+        const btnNo = document.getElementById('btn-no');
+        const btnYes = document.getElementById('btn-yes');
 
-// Интерактивная игра (Кнопка No)
-const noBtn = document.getElementById('no-btn');
-const yesBtn = document.getElementById('yes-btn');
+        function moveNoButton() {
+            // Scale Yes Button
+            yesScale += 0.3;
+            btnYes.style.transform = `scale(${yesScale})`;
 
-if (noBtn && yesBtn) {
-    noBtn.addEventListener('click', handleNoAction);
-    noBtn.addEventListener('mouseover', handleNoAction);
-}
+            // Teleport No Button
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+            const btnRect = btnNo.getBoundingClientRect();
 
-function handleNoAction(e) {
-    e.preventDefault();
-    noClicks++;
-    
-    yesSize += 0.3;
-    yesBtn.style.transform = "scale(" + yesSize + ")";
-    
-    const container = document.querySelector('.container');
-    const pad = 20;
-    const maxX = container.clientWidth - noBtn.clientWidth - pad;
-    const maxY = container.clientHeight - noBtn.clientHeight - pad;
-    
-    const randomX = Math.max(pad, Math.floor(Math.random() * maxX));
-    const randomY = Math.max(pad, Math.floor(Math.random() * maxY));
-    
-    noBtn.style.position = 'absolute';
-    noBtn.style.left = randomX + "px";
-    noBtn.style.top = randomY + "px";
-    
-    noBtn.innerText = noTexts[noClicks % noTexts.length];
-}
+            const padding = 20;
+            const maxX = containerRect.width - btnRect.width - (padding * 2);
+            const maxY = containerRect.height - btnRect.height - (padding * 2);
 
-// Переход к выбору времени (Кнопка Yes)
-if (yesBtn) {
-    yesBtn.addEventListener('click', function() {
-        const dates = cardData.guy_dates || {};
-        document.getElementById('tile-opt-1').innerText = dates.opt1 || "Option 1";
-        document.getElementById('tile-opt-2').innerText = dates.opt2 || "Option 2";
-        document.getElementById('girl-time').value = dates.defaultTime || "18:00";
-        
-        showScreen('screen-time-select');
-    });
-}
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
 
-// Девушка подтверждает время
-document.getElementById('time-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const r1 = document.getElementById('radio-opt-1').checked;
-    const dates = cardData.guy_dates || {};
-    const chosenDate = r1 ? dates.opt1 : dates.opt2;
-    const chosenTime = document.getElementById('girl-time').value;
+            btnNo.style.position = 'absolute';
+            btnNo.style.left = `${randomX}px`;
+            btnNo.style.top = `${randomY}px`;
 
-    const finalTimeString = chosenDate + " at " + chosenTime;
+            // Cycle Text
+            noClickCount = (noClickCount + 1) % noTexts.length;
+            btnNo.textContent = noTexts[noClickCount];
+        }
 
-    const response = await _supabase.from('cards').update({
-        status: 'completed',
-        girl_answer: 'Yes',
-        final_time: finalTimeString
-    }).eq('id', currentCardId);
+        btnNo.addEventListener('mouseover', moveNoButton);
+        btnNo.addEventListener('click', moveNoButton);
 
-    if (response.error) {
-        alert("Failed to save selection: " + response.error.message);
-        return;
-    }
+        // STAGE B: Proposal "Yes" Handler
+        btnYes.addEventListener('click', () => {
+            let dates = cardData.guy_dates;
+            if (typeof dates === 'string') {
+                try { dates = JSON.parse(dates); } catch(e) {}
+            }
+            
+            document.getElementById('lbl-opt-1').textContent = dates?.option1 || "Option 1";
+            document.getElementById('lbl-opt-2').textContent = dates?.option2 || "Option 2";
+            document.getElementById('final-time').value = dates?.defaultTime || "18:00";
 
-    document.getElementById('completed-message').innerHTML = "It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>" + finalTimeString;
-    showScreen('screen-completed');
-});
+            showView('view-selection');
+        });
 
-// Запуск строго после загрузки DOM элементов
-window.addEventListener('DOMContentLoaded', init);
+        // Radio Option UI Sync
+        document.getElementById('tile-1').addEventListener('click', () => {
+            document.getElementById('rad-1').checked = true;
+            document.getElementById('tile-1').classList.add('selected');
+            document.getElementById('tile-2').classList.remove('selected');
+        });
 
-        
+        document.getElementById('tile-2').addEventListener('click', () => {
+            document.getElementById('rad-2').checked = true;
+            document.getElementById('tile-2').classList.add('selected');
+            document.getElementById('tile-1').classList.remove('selected');
+        });
+
+        // STAGE B: Selection Submit Handler
+        document.getElementById('form-selection').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let dates = cardData.guy_dates;
+            if (typeof dates === 'string') {
+                try { dates = JSON.parse(dates); } catch(e) {}
+            }
+
+            const selectedOpt = document.querySelector('input[name="date_choice"]:checked').value;
+            const chosenActivity = selectedOpt === "1" ? dates?.option1 : dates?.option2;
+            const chosenTime = document.getElementById('final-time').value;
+
+            const finalDetailsString = `${chosenActivity} at ${chosenTime}`;
+
+            showView('view-loading');
+
+            const { error } = await supabase
+                .from('cards')
+                .update({
+                    status: 'completed',
+                    girl_answer: 'Yes',
+                    final_time: finalDetailsString
+                })
+                .eq('id', currentCardId);
+
+            if (error) {
+                alert("Failed to submit response. Please try again.");
+                showView('view-selection');
+                return;
+            }
+
+            cardData.status = 'completed';
+            cardData.final_time = finalDetailsString;
+            renderStage();
+        });
+
+        // RESET logic for the guy
+        async function resetCard() {
+            if (!confirm("Are you sure you want to reset this card? All current options and answers will be cleared.")) return;
+
+            showView('view-loading');
+
+            const { error } = await supabase
+                .from('cards')
+                .update({
+                    status: 'empty',
+                    guy_email: null,
+                    girl_name: null,
+                    guy_dates: null,
+                    girl_answer: null,
+                    final_time: null
+                })
+                .eq('id', currentCardId);
+
+            if (error) {
+                alert("Failed to reset card.");
+                renderStage();
+                return;
+            }
+
+            localStorage.removeItem('creator_card_' + currentCardId);
+            window.location.reload();
+        }
+
+        document.getElementById('btn-reset').addEventListener('click', resetCard);
+        document.getElementById('btn-reset-guy').addEventListener('click', resetCard);
+
+        // Run Init on Page Load
+        init();
+    </script>
+</body>
+</html>
