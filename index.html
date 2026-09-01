@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Date Proposal System</title>
-    <!-- Подключение Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Подключаем библиотеку Supabase -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         :root {
             --bg-color: #ffe6e6;
@@ -34,7 +34,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         .container {
@@ -211,6 +211,12 @@
 <body>
 
     <div class="container">
+        <!-- Экран загрузки (чтобы не было пустой плашки) -->
+        <div id="screen-loading">
+            <h2>Connecting...</h2>
+            <p>Please wait while we establish a secure connection.</p>
+        </div>
+
         <!-- Экран ошибок -->
         <div id="screen-error" class="hidden">
             <h2>Card Not Found</h2>
@@ -296,34 +302,43 @@
                 <button type="submit" class="btn">Confirm Date ❤️</button>
             </form>
         </div>
-
-        <!-- Финальный экран завершения -->
-        <div id="screen-completed" class="hidden">
-            <h2>It's a Date! 🎉</h2>
-            <p id="completed-message">Loading response details...</p>
-        </div>
-    </div>
-
-    <script>
-// Инициализация конфигурации
-const SUPABASE_URL = "https://lxezhofhrrdccvqqoplm.supabase.co";
+// Инициализация базы данных и параметров
+const SUPABASE_URL = "https://supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_w29JCG3gIA-mQcPn4s1FRw_wkkBsf-A";
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Получение ID карточки строго в виде целого числа
-const currentCardId = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
-
+let _supabase;
 let cardData = null;
 let yesSize = 1;
 let noClicks = 0;
 const noTexts = ["No", "Are you sure?", "Really sure?", "Think again!", "Last chance!", "Surely not?", "Gonna cry...", "Change your mind!"];
 
+// Извлекаем ID строго из URL и превращаем в число
+const urlParams = new URLSearchParams(window.location.search);
+const currentCardId = parseInt(urlParams.get('id'), 10);
+
 function showScreen(screenId) {
-    document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+    // Прячем абсолютно все экраны, включая экран загрузки
+    if (document.getElementById('screen-loading')) {
+        document.getElementById('screen-loading').classList.add('hidden');
+    }
+    document.querySelectorAll('.container > div').forEach(function(div) {
+        div.classList.add('hidden');
+    });
+    // Показываем нужный экран
     document.getElementById(screenId).classList.remove('hidden');
 }
 
 async function init() {
+    // Проверка на корректность библиотеки Supabase
+    if (typeof supabase === 'undefined') {
+        document.getElementById('error-message').innerText = "Database SDK failed to load. Check internet connection.";
+        showScreen('screen-error');
+        return;
+    }
+
+    // Создаем клиент внутри функции инициализации
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     if (!currentCardId || isNaN(currentCardId)) {
         document.getElementById('error-message').innerText = "Please open the link via a valid QR code (missing valid ID).";
         showScreen('screen-error');
@@ -331,7 +346,9 @@ async function init() {
     }
 
     try {
-        const { data, error } = await _supabase.from('cards').select('*').eq('id', currentCardId).single();
+        const response = await _supabase.from('cards').select('*').eq('id', currentCardId).single();
+        const data = response.data;
+        const error = response.error;
         
         if (error || !data) {
             document.getElementById('error-message').innerText = "Card ID not found in database. Make sure it exists.";
@@ -340,7 +357,7 @@ async function init() {
         }
 
         cardData = data;
-        const isCreator = localStorage.getItem(`creator_card_${currentCardId}`) === 'true';
+        const isCreator = localStorage.getItem('creator_card_' + currentCardId) === 'true';
 
         if (cardData.status === 'empty') {
             showScreen('screen-setup');
@@ -349,15 +366,15 @@ async function init() {
                 document.getElementById('dash-girl-name').innerText = cardData.girl_name || "her";
                 showScreen('screen-guy-dashboard');
             } else {
-                document.getElementById('proposal-heading').innerText = `Will you go out on a date with me, ${cardData.girl_name || 'beautiful'}? 🌹`;
+                document.getElementById('proposal-heading').innerText = "Will you go out on a date with me, " + (cardData.girl_name || 'beautiful') + "? 🌹";
                 showScreen('screen-proposal');
             }
         } else if (cardData.status === 'completed') {
             const chosenTime = cardData.final_time || "TBD";
             if (isCreator) {
-                document.getElementById('completed-message').innerHTML = `She said <strong>YES!</strong> 🎉<br><br><strong>Your Scheduled Time:</strong><br>${chosenTime}`;
+                document.getElementById('completed-message').innerHTML = "She said <strong>YES!</strong> 🎉<br><br><strong>Your Scheduled Time:</strong><br>" + chosenTime;
             } else {
-                document.getElementById('completed-message').innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Scheduled Time:</strong><br>${chosenTime}`;
+                document.getElementById('completed-message').innerHTML = "It's a date! See you then! 🥰❤️<br><br><strong>Scheduled Time:</strong><br>" + chosenTime;
             }
             showScreen('screen-completed');
         }
@@ -368,7 +385,7 @@ async function init() {
 }
 
 // Логика настройки для парня
-document.getElementById('setup-form').addEventListener('submit', async (e) => {
+document.getElementById('setup-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const guyEmail = document.getElementById('guy-email').value;
     const girlName = document.getElementById('girl-name').value;
@@ -376,67 +393,73 @@ document.getElementById('setup-form').addEventListener('submit', async (e) => {
     const opt2 = document.getElementById('date-opt-2').value;
     const defTime = document.getElementById('default-time').value;
 
-    const datesJson = { opt1, opt2, defaultTime: defTime };
+    const datesJson = { opt1: opt1, opt2: opt2, defaultTime: defTime };
 
-    const { error } = await _supabase.from('cards').update({
+    const response = await _supabase.from('cards').update({
         status: 'active',
         guy_email: guyEmail,
         girl_name: girlName,
         guy_dates: datesJson
     }).eq('id', currentCardId);
 
-    if (error) {
-        alert("Failed to save settings: " + error.message);
+    if (response.error) {
+        alert("Failed to save settings: " + response.error.message);
         return;
     }
 
-    localStorage.setItem(`creator_card_${currentCardId}`, 'true');
-    showScreen('screen-activated');
+    localStorage.setItem('creator_card_' + currentCardId, 'true');
+    window.location.reload(); // Перезагружаем страницу, чтобы применился статус active
 });
 
 // Кнопки шаринга ссылок
-document.getElementById('copy-link-btn').addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link copied to clipboard! Sent it to her. 😉");
-});
+if (document.getElementById('copy-link-btn')) {
+    document.getElementById('copy-link-btn').addEventListener('click', function() {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard! Sent it to her. 😉");
+    });
+}
 
-document.getElementById('whatsapp-btn').addEventListener('click', () => {
-    const text = encodeURIComponent(`Hey! I left a little surprise for you here, check it out: ${window.location.href}`);
-    window.open(`https://whatsapp.com{text}`, '_blank');
-});
+if (document.getElementById('whatsapp-btn')) {
+    document.getElementById('whatsapp-btn').addEventListener('click', function() {
+        const text = encodeURIComponent("Hey! I left a little surprise for you here, check it out: " + window.location.href);
+        window.open("https://whatsapp.com" + text, '_blank');
+    });
+}
 
-document.getElementById('reset-card-btn').addEventListener('click', async () => {
-    if (!confirm("Are you sure you want to reset this card? All answers will be lost.")) return;
-    
-    await _supabase.from('cards').update({
-        status: 'empty',
-        guy_email: null,
-        girl_name: null,
-        guy_dates: null,
-        girl_answer: null,
-        final_time: null
-    }).eq('id', currentCardId);
+if (document.getElementById('reset-card-btn')) {
+    document.getElementById('reset-card-btn').addEventListener('click', async function() {
+        if (!confirm("Are you sure you want to reset this card? All answers will be lost.")) return;
+        
+        await _supabase.from('cards').update({
+            status: 'empty',
+            guy_email: null,
+            girl_name: null,
+            guy_dates: null,
+            girl_answer: null,
+            final_time: null
+        }).eq('id', currentCardId);
 
-    localStorage.removeItem(`creator_card_${currentCardId}`);
-    window.location.reload();
-});
+        localStorage.removeItem('creator_card_' + currentCardId);
+        window.location.reload();
+    });
+}
 
 // Интерактивная игра (Кнопка No)
 const noBtn = document.getElementById('no-btn');
 const yesBtn = document.getElementById('yes-btn');
 
-noBtn.addEventListener('click', handleNoAction);
-noBtn.addEventListener('mouseover', handleNoAction);
+if (noBtn && yesBtn) {
+    noBtn.addEventListener('click', handleNoAction);
+    noBtn.addEventListener('mouseover', handleNoAction);
+}
 
 function handleNoAction(e) {
     e.preventDefault();
     noClicks++;
     
-    // Увеличиваем кнопку Yes
     yesSize += 0.3;
-    yesBtn.style.transform = `scale(${yesSize})`;
+    yesBtn.style.transform = "scale(" + yesSize + ")";
     
-    // Телепортируем кнопку No в случайное место внутри контейнера
     const container = document.querySelector('.container');
     const pad = 20;
     const maxX = container.clientWidth - noBtn.clientWidth - pad;
@@ -446,46 +469,50 @@ function handleNoAction(e) {
     const randomY = Math.max(pad, Math.floor(Math.random() * maxY));
     
     noBtn.style.position = 'absolute';
-    noBtn.style.left = `${randomX}px`;
-    noBtn.style.top = `${randomY}px`;
+    noBtn.style.left = randomX + "px";
+    noBtn.style.top = randomY + "px";
     
-    // Меняем текст на кнопке No
     noBtn.innerText = noTexts[noClicks % noTexts.length];
 }
 
 // Переход к выбору времени (Кнопка Yes)
-yesBtn.addEventListener('click', () => {
-    const dates = cardData.guy_dates || {};
-    document.getElementById('tile-opt-1').innerText = dates.opt1 || "Option 1";
-    document.getElementById('tile-opt-2').innerText = dates.opt2 || "Option 2";
-    document.getElementById('girl-time').value = dates.defaultTime || "18:00";
-    
-    showScreen('screen-time-select');
-});
+if (yesBtn) {
+    yesBtn.addEventListener('click', function() {
+        const dates = cardData.guy_dates || {};
+        document.getElementById('tile-opt-1').innerText = dates.opt1 || "Option 1";
+        document.getElementById('tile-opt-2').innerText = dates.opt2 || "Option 2";
+        document.getElementById('girl-time').value = dates.defaultTime || "18:00";
+        
+        showScreen('screen-time-select');
+    });
+}
 
 // Девушка подтверждает время
-document.getElementById('time-form').addEventListener('submit', async (e) => {
+document.getElementById('time-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const r1 = document.getElementById('radio-opt-1').checked;
     const dates = cardData.guy_dates || {};
     const chosenDate = r1 ? dates.opt1 : dates.opt2;
     const chosenTime = document.getElementById('girl-time').value;
 
-    const finalTimeString = `${chosenDate} at ${chosenTime}`;
+    const finalTimeString = chosenDate + " at " + chosenTime;
 
-    const { error } = await _supabase.from('cards').update({
+    const response = await _supabase.from('cards').update({
         status: 'completed',
         girl_answer: 'Yes',
         final_time: finalTimeString
     }).eq('id', currentCardId);
 
-    if (error) {
-        alert("Failed to save selection: " + error.message);
+    if (response.error) {
+        alert("Failed to save selection: " + response.error.message);
         return;
     }
 
-    document.getElementById('completed-message').innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>${finalTimeString}`;
+    document.getElementById('completed-message').innerHTML = "It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>" + finalTimeString;
     showScreen('screen-completed');
 });
 
+// Запуск строго после загрузки DOM элементов
 window.addEventListener('DOMContentLoaded', init);
+
+        
