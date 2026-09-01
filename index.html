@@ -1,16 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-    window.SUPABASE_URL = "https://lxezhofhrrdccvqqoplm.supabase.co"; 
-    window.SUPABASE_ANON_KEY = "sb_publishable_w29JCG3gIA-mQcPn4s1FRw_wkkBsf-A";
-
-    window.currentCardId = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
-</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Date Proposal System</title>
+    <!-- Подключение Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -72,7 +66,6 @@
             display: none !important;
         }
 
-        /* Form Controls */
         .form-group {
             margin-bottom: 16px;
             text-align: left;
@@ -142,7 +135,6 @@
             background-color: #20ba5a;
         }
 
-        /* Interactive Proposal Screen */
         .gif-container {
             margin: 16px 0;
             border-radius: 16px;
@@ -152,7 +144,7 @@
         .gif-container img {
             width: 100%;
             max-height: 200px;
-            object-fit: cover;
+            object-fit: contain;
         }
 
         .btn-group {
@@ -177,7 +169,6 @@
             width: auto;
         }
 
-        /* Options layout */
         .date-options {
             display: flex;
             gap: 8px;
@@ -220,11 +211,13 @@
 <body>
 
     <div class="container">
+        <!-- Экран ошибок -->
         <div id="screen-error" class="hidden">
             <h2>Card Not Found</h2>
             <p id="error-message">Invalid card ID provided in the URL.</p>
         </div>
 
+        <!-- Экран настройки для парня -->
         <div id="screen-setup" class="hidden">
             <h2>Activate Your Card 🌹</h2>
             <p>Fill out the details below to prepare the proposal for her.</p>
@@ -250,6 +243,7 @@
             </form>
         </div>
 
+        <!-- Экран успеха активации -->
         <div id="screen-activated" class="hidden">
             <h2>Card Activated! 🎉</h2>
             <p>Your proposal card is live. Share the link with her!</p>
@@ -257,6 +251,7 @@
             <button id="whatsapp-btn" class="btn btn-whatsapp">Share to WhatsApp 💬</button>
         </div>
 
+        <!-- Панель ожидания для парня -->
         <div id="screen-guy-dashboard" class="hidden">
             <span class="status-badge">Status: Active</span>
             <h2>Card is Ready! ⏳</h2>
@@ -264,33 +259,45 @@
             <button id="reset-card-btn" class="btn btn-secondary">Reset Card 🔄</button>
         </div>
 
+        <!-- Экран игры Да/Нет для девушки -->
         <div id="screen-proposal" class="hidden">
             <h1 id="proposal-heading">Will you go out on a date with me? 🌹</h1>
             <div class="gif-container">
-                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z0Zml6M2tqZzR3ZWt6Zzhpd3RyZ3lyeDVxc3Bhcmd6ZXR4Ynp3OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L8KEO93N21nOA/giphy.gif" alt="Cute Gif">
+                <img id="proposal-gif" src="https://giphy.com" alt="Cute bear">
             </div>
             <div class="btn-group">
-                <button id="yes-btn" class="btn">Yes!</button>
+                <button id="yes-btn" class="btn">Yes</button>
                 <button id="no-btn" class="btn">No</button>
             </div>
         </div>
 
+        <!-- Экран выбора времени девушкой -->
         <div id="screen-time-select" class="hidden">
             <h2>Yay! Pick a date and time 🥰</h2>
+            <p>Choose the best option for you:</p>
             <form id="time-form">
                 <div class="form-group">
                     <label>Select a Day:</label>
-                    <div class="date-options" id="date-options-container">
-                        </div>
+                    <div class="date-options">
+                        <label style="flex: 1;">
+                            <input type="radio" name="selected_date" id="radio-opt-1" required>
+                            <div class="radio-tile" id="tile-opt-1">Date 1</div>
+                        </label>
+                        <label style="flex: 1;">
+                            <input type="radio" name="selected_date" id="radio-opt-2">
+                            <div class="radio-tile" id="tile-opt-2">Date 2</div>
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="custom-time">Choose exact time:</label>
-                    <input type="time" id="custom-time" required>
+                    <label for="girl-time">Choose exact time:</label>
+                    <input type="time" id="girl-time" required>
                 </div>
                 <button type="submit" class="btn">Confirm Date ❤️</button>
             </form>
         </div>
 
+        <!-- Финальный экран завершения -->
         <div id="screen-completed" class="hidden">
             <h2>It's a Date! 🎉</h2>
             <p id="completed-message">Loading response details...</p>
@@ -298,270 +305,187 @@
     </div>
 
     <script>
-        // CONFIGURATION: Replace with your actual Supabase credentials
-        const SUPABASE_URL = "ВСТАВЬТЕ_СЮДА_ВАШ_PROJECT_URL";
-        const SUPABASE_ANON_KEY = "ВСТАВЬТЕ_СЮДА_ВАШ_ANON_PUBLIC_KEY";
+// Инициализация конфигурации
+const SUPABASE_URL = "https://lxezhofhrrdccvqqoplm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_w29JCG3gIA-mQcPn4s1FRw_wkkBsf-A";
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Initialize Supabase Client
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Получение ID карточки строго в виде целого числа
+const currentCardId = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
 
-        // State Variables
-        let currentCardId = null;
-        let cardData = null;
-        let yesScale = 1;
-        let noScale = 1;
-        let noClickCount = 0;
+let cardData = null;
+let yesSize = 1;
+let noClicks = 0;
+const noTexts = ["No", "Are you sure?", "Really sure?", "Think again!", "Last chance!", "Surely not?", "Gonna cry...", "Change your mind!"];
 
-        const noPhrases = [
-            "Are you sure?",
-            "Think again!",
-            "You can't say no!",
-            "Really sure?",
-            "Give it another thought!",
-            "Have a heart!",
-            "Don't be so cold!",
-            "Change your mind?"
-        ];
+function showScreen(screenId) {
+    document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById(screenId).classList.remove('hidden');
+}
 
-        // Screen Routing Helper
-        function showScreen(screenId) {
-            const screens = [
-                'screen-error', 'screen-setup', 'screen-activated', 
-                'screen-guy-dashboard', 'screen-proposal', 
-                'screen-time-select', 'screen-completed'
-            ];
-            screens.forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
+async function init() {
+    if (!currentCardId || isNaN(currentCardId)) {
+        document.getElementById('error-message').innerText = "Please open the link via a valid QR code (missing valid ID).";
+        showScreen('screen-error');
+        return;
+    }
+
+    try {
+        const { data, error } = await _supabase.from('cards').select('*').eq('id', currentCardId).single();
+        
+        if (error || !data) {
+            document.getElementById('error-message').innerText = "Card ID not found in database. Make sure it exists.";
+            showScreen('screen-error');
+            return;
         }
 
-        // Parse Query Parameter
-        function getCardIdFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('id');
-        }
+        cardData = data;
+        const isCreator = localStorage.getItem(`creator_card_${currentCardId}`) === 'true';
 
-        // INITIALIZATION
-        async function init() {
-            currentCardId = getCardIdFromURL();
-            if (!currentCardId) {
-                document.getElementById('error-message').innerText = "Missing 'id' parameter in URL.";
-                showScreen('screen-error');
-                return;
+        if (cardData.status === 'empty') {
+            showScreen('screen-setup');
+        } else if (cardData.status === 'active') {
+            if (isCreator) {
+                document.getElementById('dash-girl-name').innerText = cardData.girl_name || "her";
+                showScreen('screen-guy-dashboard');
+            } else {
+                document.getElementById('proposal-heading').innerText = `Will you go out on a date with me, ${cardData.girl_name || 'beautiful'}? 🌹`;
+                showScreen('screen-proposal');
             }
-
-            try {
-                const { data, error } = await _supabase
-                    .from('cards')
-                    .select('*')
-                    .eq('id', currentCardId)
-                    .single();
-
-                if (error || !data) {
-                    document.getElementById('error-message').innerText = "Card record not found in database.";
-                    showScreen('screen-error');
-                    return;
-                }
-
-                cardData = data;
-                routeByStatus(cardData);
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('error-message').innerText = "Database connection error.";
-                showScreen('screen-error');
+        } else if (cardData.status === 'completed') {
+            const chosenTime = cardData.final_time || "TBD";
+            if (isCreator) {
+                document.getElementById('completed-message').innerHTML = `She said <strong>YES!</strong> 🎉<br><br><strong>Your Scheduled Time:</strong><br>${chosenTime}`;
+            } else {
+                document.getElementById('completed-message').innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Scheduled Time:</strong><br>${chosenTime}`;
             }
-        }
-
-        // ROUTING ENGINE BASED ON STATUS & ROLE
-        function routeByStatus(data) {
-            const isCreator = localStorage.getItem(`role_${currentCardId}`) === 'creator';
-
-            if (data.status === 'empty') {
-                showScreen('screen-setup');
-            } 
-            else if (data.status === 'active') {
-                if (isCreator) {
-                    document.getElementById('dash-girl-name').innerText = data.girl_name || 'her';
-                    showScreen('screen-guy-dashboard');
-                } else {
-                    document.getElementById('proposal-heading').innerText = `Will you go on a date with me, ${data.girl_name || ''}? 🌹`;
-                    showScreen('screen-proposal');
-                }
-            } 
-            else if (data.status === 'completed') {
-                const msg = document.getElementById('completed-message');
-                if (isCreator) {
-                    msg.innerHTML = `She said YES! 🎉<br><br><strong>Selected Date & Time:</strong><br>${data.final_time}`;
-                } else {
-                    msg.innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>${data.final_time}`;
-                }
-                showScreen('screen-completed');
-            }
-        }
-
-        // EVENT HANDLERS: SETUP SCREEN (GUY)
-        document.getElementById('setup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const guyEmail = document.getElementById('guy-email').value;
-            const girlName = document.getElementById('girl-name').value;
-            const date1 = document.getElementById('date-opt-1').value;
-            const date2 = document.getElementById('date-opt-2').value;
-            const defaultTime = document.getElementById('default-time').value;
-
-            const guyDatesPayload = {
-                dates: [date1, date2],
-                default_time: defaultTime
-            };
-
-            const { error } = await _supabase
-                .from('cards')
-                .update({
-                    status: 'active',
-                    guy_email: guyEmail,
-                    girl_name: girlName,
-                    guy_dates: guyDatesPayload
-                })
-                .eq('id', currentCardId);
-
-            if (error) {
-                alert("Failed to activate card: " + error.message);
-                return;
-            }
-
-            localStorage.setItem(`role_${currentCardId}`, 'creator');
-            showScreen('screen-activated');
-        });
-
-        // LINK SHARING
-        document.getElementById('copy-link-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link copied to clipboard!");
-        });
-
-        document.getElementById('whatsapp-btn').addEventListener('click', () => {
-            const text = encodeURIComponent(`Hey! I have a question for you: ${window.location.href}`);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        });
-
-        // RESET CARD
-        document.getElementById('reset-card-btn').addEventListener('click', async () => {
-            if (!confirm("Are you sure you want to reset this card?")) return;
-
-            const { error } = await _supabase
-                .from('cards')
-                .update({
-                    status: 'empty',
-                    guy_email: null,
-                    girl_name: null,
-                    guy_dates: null,
-                    final_time: null,
-                    girl_answer: null
-                })
-                .eq('id', currentCardId);
-
-            if (error) {
-                alert("Reset failed: " + error.message);
-                return;
-            }
-
-            localStorage.removeItem(`role_${currentCardId}`);
-            location.reload();
-        });
-
-        // INTERACTIVE PROPOSAL GAME (GIRL)
-        const noBtn = document.getElementById('no-btn');
-        const yesBtn = document.getElementById('yes-btn');
-
-        function moveNoButton() {
-            const padding = 20;
-            const btnWidth = noBtn.offsetWidth;
-            const btnHeight = noBtn.offsetHeight;
-            
-            const maxX = window.innerWidth - btnWidth - padding;
-            const maxY = window.innerHeight - btnHeight - padding;
-
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
-
-            noBtn.style.position = 'fixed';
-            noBtn.style.left = `${randomX}px`;
-            noBtn.style.top = `${randomY}px`;
-
-            yesScale += 0.35;
-            noScale = Math.max(0.4, noScale - 0.08);
-
-            yesBtn.style.transform = `scale(${yesScale})`;
-            noBtn.style.transform = `scale(${noScale})`;
-
-            noBtn.textContent = noPhrases[noClickCount % noPhrases.length];
-            noClickCount++;
-        }
-
-        noBtn.addEventListener('mouseover', moveNoButton);
-        noBtn.addEventListener('click', moveNoButton);
-
-        yesBtn.addEventListener('click', () => {
-            setupTimeSelectionScreen();
-            showScreen('screen-time-select');
-        });
-
-        // TIME SELECTION SCREEN BUILDER
-        function setupTimeSelectionScreen() {
-            const container = document.getElementById('date-options-container');
-            container.innerHTML = '';
-
-            const dates = cardData.guy_dates?.dates || ['Sept 3rd', 'Sept 4th'];
-            const defaultTime = cardData.guy_dates?.default_time || '18:00';
-
-            dates.forEach((d, idx) => {
-                const label = document.createElement('label');
-                label.style.flex = "1";
-                label.style.margin = "0";
-                
-                label.innerHTML = `
-                    <input type="radio" name="selected_date" value="${d}" ${idx === 0 ? 'checked' : ''}>
-                    <div class="radio-tile">${d}</div>
-                `;
-                container.appendChild(label);
-            });
-
-            document.getElementById('custom-time').value = defaultTime;
-        }
-
-        // SUBMIT GIRL'S CHOICE
-        document.getElementById('time-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const selectedDateElement = document.querySelector('input[name="selected_date"]:checked');
-            const selectedDate = selectedDateElement ? selectedDateElement.value : '';
-            const selectedTime = document.getElementById('custom-time').value;
-
-            const finalTimeString = `${selectedDate} at ${selectedTime}`;
-
-            const { error } = await _supabase
-                .from('cards')
-                .update({
-                    status: 'completed',
-                    girl_answer: 'Yes',
-                    final_time: finalTimeString
-                })
-                .eq('id', currentCardId);
-
-            if (error) {
-                alert("Failed to save selection: " + error.message);
-                return;
-            }
-
-            const msg = document.getElementById('completed-message');
-            msg.innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>${finalTimeString}`;
             showScreen('screen-completed');
-        });
+        }
+    } catch (err) {
+        document.getElementById('error-message').innerText = "Connection error. Please try again later.";
+        showScreen('screen-error');
+    }
+}
 
-        // Initialize App on DOM Load
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+// Логика настройки для парня
+document.getElementById('setup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const guyEmail = document.getElementById('guy-email').value;
+    const girlName = document.getElementById('girl-name').value;
+    const opt1 = document.getElementById('date-opt-1').value;
+    const opt2 = document.getElementById('date-opt-2').value;
+    const defTime = document.getElementById('default-time').value;
+
+    const datesJson = { opt1, opt2, defaultTime: defTime };
+
+    const { error } = await _supabase.from('cards').update({
+        status: 'active',
+        guy_email: guyEmail,
+        girl_name: girlName,
+        guy_dates: datesJson
+    }).eq('id', currentCardId);
+
+    if (error) {
+        alert("Failed to save settings: " + error.message);
+        return;
+    }
+
+    localStorage.setItem(`creator_card_${currentCardId}`, 'true');
+    showScreen('screen-activated');
+});
+
+// Кнопки шаринга ссылок
+document.getElementById('copy-link-btn').addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copied to clipboard! Sent it to her. 😉");
+});
+
+document.getElementById('whatsapp-btn').addEventListener('click', () => {
+    const text = encodeURIComponent(`Hey! I left a little surprise for you here, check it out: ${window.location.href}`);
+    window.open(`https://whatsapp.com{text}`, '_blank');
+});
+
+document.getElementById('reset-card-btn').addEventListener('click', async () => {
+    if (!confirm("Are you sure you want to reset this card? All answers will be lost.")) return;
+    
+    await _supabase.from('cards').update({
+        status: 'empty',
+        guy_email: null,
+        girl_name: null,
+        guy_dates: null,
+        girl_answer: null,
+        final_time: null
+    }).eq('id', currentCardId);
+
+    localStorage.removeItem(`creator_card_${currentCardId}`);
+    window.location.reload();
+});
+
+// Интерактивная игра (Кнопка No)
+const noBtn = document.getElementById('no-btn');
+const yesBtn = document.getElementById('yes-btn');
+
+noBtn.addEventListener('click', handleNoAction);
+noBtn.addEventListener('mouseover', handleNoAction);
+
+function handleNoAction(e) {
+    e.preventDefault();
+    noClicks++;
+    
+    // Увеличиваем кнопку Yes
+    yesSize += 0.3;
+    yesBtn.style.transform = `scale(${yesSize})`;
+    
+    // Телепортируем кнопку No в случайное место внутри контейнера
+    const container = document.querySelector('.container');
+    const pad = 20;
+    const maxX = container.clientWidth - noBtn.clientWidth - pad;
+    const maxY = container.clientHeight - noBtn.clientHeight - pad;
+    
+    const randomX = Math.max(pad, Math.floor(Math.random() * maxX));
+    const randomY = Math.max(pad, Math.floor(Math.random() * maxY));
+    
+    noBtn.style.position = 'absolute';
+    noBtn.style.left = `${randomX}px`;
+    noBtn.style.top = `${randomY}px`;
+    
+    // Меняем текст на кнопке No
+    noBtn.innerText = noTexts[noClicks % noTexts.length];
+}
+
+// Переход к выбору времени (Кнопка Yes)
+yesBtn.addEventListener('click', () => {
+    const dates = cardData.guy_dates || {};
+    document.getElementById('tile-opt-1').innerText = dates.opt1 || "Option 1";
+    document.getElementById('tile-opt-2').innerText = dates.opt2 || "Option 2";
+    document.getElementById('girl-time').value = dates.defaultTime || "18:00";
+    
+    showScreen('screen-time-select');
+});
+
+// Девушка подтверждает время
+document.getElementById('time-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const r1 = document.getElementById('radio-opt-1').checked;
+    const dates = cardData.guy_dates || {};
+    const chosenDate = r1 ? dates.opt1 : dates.opt2;
+    const chosenTime = document.getElementById('girl-time').value;
+
+    const finalTimeString = `${chosenDate} at ${chosenTime}`;
+
+    const { error } = await _supabase.from('cards').update({
+        status: 'completed',
+        girl_answer: 'Yes',
+        final_time: finalTimeString
+    }).eq('id', currentCardId);
+
+    if (error) {
+        alert("Failed to save selection: " + error.message);
+        return;
+    }
+
+    document.getElementById('completed-message').innerHTML = `It's a date! See you then! 🥰❤️<br><br><strong>Your Scheduled Time:</strong><br>${finalTimeString}`;
+    showScreen('screen-completed');
+});
+
+window.addEventListener('DOMContentLoaded', init);
